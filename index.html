@@ -3,32 +3,364 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAQ 페이지</title>
+    <title>FAQ 게시판</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .faq-item { border-bottom: 1px solid #ccc; margin-bottom: 10px; }
-        .faq-question { cursor: pointer; font-weight: bold; padding: 10px; background: #f0f0f0; }
-        .faq-answer { display: none; padding: 10px; }
-        .faq-answer.open { display: block; }  /* 펼쳐진 상태 */
+        /* CSS 변수: 색상 및 스타일 관리 */
+        :root {
+            --primary-color: #A490E5;
+            --text-color: #333;
+            --secondary-text-color: #888;
+            --border-color: #eee;
+            --background-color: #f9f9f9;
+            --white-color: #fff;
+            --active-tab-bg: var(--primary-color);
+            --active-tab-text: var(--white-color);
+        }
+
+        /* 기본 스타일 초기화 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* 전체 컨테이너 */
+        .faq-container {
+            width: 100%;
+            max-width: 700px;
+            background-color: var(--white-color);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 메인 제목 */
+        .faq-header h2 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* 검색창 */
+        .search-bar {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar svg {
+            width: 20px;
+            height: 20px;
+            fill: #999;
+            margin-right: 10px;
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .search-bar input::placeholder {
+            color: #ccc;
+        }
+
+        /* 필터 탭 */
+        .filter-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4열 그리드 */
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .filter-tabs button {
+            background-color: #f5f5f5;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .filter-tabs button:hover {
+            background-color: #e9e9e9;
+        }
+
+        .filter-tabs button.active {
+            background-color: var(--active-tab-bg);
+            color: var(--active-tab-text);
+            border-color: var(--active-tab-bg);
+        }
+
+        /* FAQ 목록 */
+        .faq-list {
+            list-style: none;
+        }
+
+        .faq-item {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .faq-category {
+            color: var(--primary-color);
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .faq-title {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .faq-question svg {
+            width: 16px;
+            height: 16px;
+            fill: #aaa;
+            transition: transform 0.3s ease;
+            flex-shrink: 0; /* 아이콘이 찌그러지지 않도록 */
+            margin-left: 10px;
+        }
+
+        /* 답변 영역 */
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+            color: #555;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        /* 활성화 상태 스타일 */
+        .faq-item.active .faq-answer {
+            max-height: 300px; 
+            padding-top: 15px;
+            transition: max-height 0.5s ease-in, padding 0.5s ease-in;
+        }
+
+        .faq-item.active .faq-question svg {
+            transform: rotate(180deg);
+        }
+
+        /* 반응형 디자인: 화면 너비가 600px 이하일 때 (모바일) */
+        @media (max-width: 600px) {
+            .faq-container {
+                padding: 16px;
+            }
+            
+            .faq-header h2 {
+                font-size: 20px;
+            }
+
+            .filter-tabs {
+                grid-template-columns: repeat(2, 1fr); /* 모바일: 2열 */
+            }
+
+            .filter-tabs button {
+                font-size: 13px;
+            }
+            
+            .faq-title {
+                font-size: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>자주 묻는 질문 (FAQ)</h1>
-    <div class="faq-item">
-        <div class="faq-question" onclick="toggleAnswer(this)">질문 1: 이건 뭐예요?</div>
-        <div class="faq-answer">답변 1: 설명 설명...</div>
+
+    <div class="faq-container">
+        <header class="faq-header">
+            <h2>궁금한 사항이 있으신가요?</h2>
+        </header>
+
+        <main>
+            <section class="search-section">
+                <div class="search-bar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                    </svg>
+                    <input type="text" placeholder="검색어를 입력해주세요">
+                </div>
+            </section>
+
+            <section class="filter-section">
+                <div class="filter-tabs">
+                    <button class="active" data-tab="all">전체</button>
+                    <button data-tab="history">위치 기록</button>
+                    <button data-tab="share">위치 공유</button>
+                    <button data-tab="alert">위치 알림</button>
+                </div>
+            </section>
+
+            <section class="faq-list-section">
+                <ul class="faq-list">
+                    <!-- 위치 기록 Items -->
+                    <li class="faq-item" data-category="history">
+                        <div class="faq-question">
+                            <div class="faq-text">
+                                <div class="faq-category">위치 기록</div>
+                                <p class="faq-title">과거의 위치 기록은 어떻게 확인하나요?</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
+                        </div>
+                        <div class="faq-answer">
+                            <p>앱 내 '위치 기록' 탭에서 날짜를 선택하여 과거의 이동 경로를 확인할 수 있습니다. 데이터는 최대 1년까지 안전하게 보관됩니다.</p>
+                        </div>
+                    </li>
+                    <li class="faq-item" data-category="history">
+                        <div class="faq-question">
+                            <div class="faq-text">
+                                <div class="faq-category">위치 기록</div>
+                                <p class="faq-title">위치 기록을 삭제하고 싶어요.</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
+                        </div>
+                        <div class="faq-answer">
+                            <p>원하는 날짜의 기록을 선택한 후, 우측 상단의 휴지통 아이콘을 눌러 개별적으로 삭제할 수 있습니다. 전체 기록 삭제는 '설정 > 데이터 관리' 메뉴에서 가능합니다.</p>
+                        </div>
+                    </li>
+
+                    <!-- 위치 공유 Items -->
+                    <li class="faq-item" data-category="share">
+                        <div class="faq-question">
+                            <div class="faq-text">
+                                <div class="faq-category">위치 공유</div>
+                                <p class="faq-title">가족에게 실시간 위치를 공유하려면 어떻게 하나요?</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
+                        </div>
+                        <div class="faq-answer">
+                            <p>'위치 공유' 탭에서 '새로운 공유 시작' 버튼을 누르고, 연락처에서 공유할 가족을 선택하세요. 공유 시간도 1시간, 3시간, 하루 종일 등으로 설정할 수 있습니다.</p>
+                        </div>
+                    </li>
+                    <li class="faq-item" data-category="share">
+                        <div class="faq-question">
+                            <div class="faq-text">
+                                <div class="faq-category">위치 공유</div>
+                                <p class="faq-title">위치 공유를 중단하고 싶습니다.</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
+                        </div>
+                        <div class="faq-answer">
+                            <p>현재 공유 중인 목록에서 중단하고 싶은 사람을 선택하고 '공유 중단' 버튼을 누르면 즉시 실시간 위치 공유가 종료됩니다.</p>
+                        </div>
+                    </li>
+
+                    <!-- 위치 알림 Items -->
+                    <li class="faq-item" data-category="alert">
+                        <div class="faq-question">
+                            <div class="faq-text">
+                                <div class="faq-category">위치 알림</div>
+                                <p class="faq-title">자녀가 학교에 도착하면 알림을 받을 수 있나요?</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
+                        </div>
+                        <div class="faq-answer">
+                            <p>네, 가능합니다. '위치 알림' 탭에서 '장소 알림 추가'를 선택하고, 지도에서 학교 위치를 지정한 뒤 '도착 시 알림'을 활성화하세요. 자녀가 해당 장소에 진입하면 부모님께 푸시 알림이 전송됩니다.</p>
+                        </div>
+                    </li>
+                    <li class="faq-item" data-category="alert">
+                        <div class="faq-question">
+                            <div class="faq-text">
+                                <div class="faq-category">위치 알림</div>
+                                <p class="faq-title">위험 지역에 접근 시 알림을 설정하고 싶어요.</p>
+                            </div>
+                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
+                        </div>
+                        <div class="faq-answer">
+                            <p>마찬가지로 '장소 알림 추가'에서 특정 지역을 '위험 지역'으로 설정할 수 있습니다. 가족 구성원이 해당 지역에 진입하거나 이탈할 때 즉시 알림을 받아볼 수 있어 안전을 지키는 데 도움이 됩니다.</p>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+        </main>
     </div>
-    <div class="faq-item">
-        <div class="faq-question" onclick="toggleAnswer(this)">질문 2: 어떻게 사용하나요?</div>
-        <div class="faq-answer">답변 2: 이렇게 하세요...</div>
-    </div>
-    <!-- 추가 FAQ 항목 여기서 복사해서 붙여넣기 -->
-    
+
     <script>
-        function toggleAnswer(element) {
-            const answer = element.nextElementSibling;
-            answer.classList.toggle('open');
-        }
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.filter-tabs button');
+            const faqItems = document.querySelectorAll('.faq-item');
+            const faqList = document.querySelector('.faq-list');
+            const searchInput = document.querySelector('.search-bar input');
+
+            // 탭과 검색을 모두 처리하는 필터링 함수
+            function filterAndSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const activeTab = document.querySelector('.filter-tabs button.active').getAttribute('data-tab');
+
+                faqItems.forEach(item => {
+                    const category = item.getAttribute('data-category');
+                    const title = item.querySelector('.faq-title').textContent.toLowerCase();
+                    const answer = item.querySelector('.faq-answer p').textContent.toLowerCase();
+
+                    // 1. 탭 필터링 조건 확인
+                    const matchesCategory = (activeTab === 'all' || activeTab === category);
+                    // 2. 검색어 필터링 조건 확인
+                    const matchesSearch = (title.includes(searchTerm) || answer.includes(searchTerm));
+
+                    // 두 조건이 모두 참일 때만 아이템 표시
+                    if (matchesCategory && matchesSearch) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            // 1. 탭 클릭 이벤트 리스너
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(item => item.classList.remove('active'));
+                    tab.classList.add('active');
+                    filterAndSearch(); // 탭 변경 시 필터링 다시 실행
+                });
+            });
+
+            // 2. 검색창 입력 이벤트 리스너
+            searchInput.addEventListener('input', filterAndSearch);
+
+            // 3. 아코디언 (펼치기/접기) 기능
+            faqList.addEventListener('click', function(e) {
+                const question = e.target.closest('.faq-question');
+                if (question) {
+                    const faqItem = question.parentElement;
+                    faqItem.classList.toggle('active');
+                }
+            });
+            
+            // 초기 로드 시 필터링 실행
+            filterAndSearch();
+        });
     </script>
+
 </body>
 </html>
